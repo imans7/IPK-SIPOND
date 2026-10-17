@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk — SIPOND</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Animasi Latar Belakang Gradien Bergerak */
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .login-wrap-animated {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    /* Kombinasi warna latar yang lembut */
+    background: linear-gradient(-45deg, #e0e5ec, #f3e3d4, #deebe4, #ffffff);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
+  }
+
+  /* Desain Kartu Login yang Lebih Halus */
+  .login-card-modern {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+    text-align: center;
+    transform: translateY(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .login-card-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12), 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+
+  .login-card-modern h1 {
+    font-size: 32px;
+    margin-bottom: 6px;
+    color: #1C2420;
+    letter-spacing: -0.02em;
+  }
+
+  .login-card-modern p {
+    color: #5B6560;
+    font-size: 13.5px;
+    margin: 0 0 28px;
+  }
+
+  /* Penyesuaian Form Input */
+  .login-card-modern .field {
+    text-align: left;
+    margin-bottom: 18px;
+  }
+  
+  .login-card-modern .field label {
+    font-weight: 500;
+  }
+
+  .login-card-modern .field input {
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1.5px solid #D8DBD2;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .login-card-modern .field input:focus {
+    border-color: #C1652B;
+    box-shadow: 0 0 0 3px rgba(193, 101, 43, 0.15);
+  }
+
+  .login-card-modern .btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  
+  /* Hapus background mode malam khusus untuk wrap agar animasi tetap terlihat */
+  body.dark-mode .login-wrap-animated {
+    background: linear-gradient(-45deg, #121212, #2a1f1a, #162620, #1e1e1e);
+    background-size: 400% 400%;
+  }
+  body.dark-mode .login-card-modern {
+    background: rgba(30, 30, 30, 0.85);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+  body.dark-mode .login-card-modern h1 { color: #E5E7EB; }
+  body.dark-mode .login-card-modern p { color: #9CA3AF; }
+</style>
+</head>
+<body>
+<div class="login-wrap-animated">
+  <div class="login-card-modern">
+    <h1>SIPOND</h1>
+    <p>PT Inti Prima Karya — masuk untuk melanjutkan</p>
+
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="lUsername" autocomplete="username" placeholder="Masukkan username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="lPassword" autocomplete="current-password" placeholder="Masukkan password">
+    </div>
+    <div id="loginErr" class="err" style="display:none; text-align:left; margin-top:-6px; margin-bottom:12px;"></div>
+    <button class="btn accent" id="loginBtn" onclick="doLogin()">Masuk ke Sistem</button>
+  </div>
+</div>
+
+<script>
+async function checkAlreadyLoggedIn(){
+  try{
+    const res = await fetch('/api/me');
+    if(res.ok) window.location.href = '/';
+  }catch(e){ /* diamkan, tetap di halaman login */ }
+}
+checkAlreadyLoggedIn();
+
+async function doLogin(){
+  const username = document.getElementById('lUsername').value.trim();
+  const password = document.getElementById('lPassword').value;
+  const errEl = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  
+  if(!username || !password){
+    errEl.textContent = 'Username dan password wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Memeriksa kredensial...';
+  
+  try{
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || 'Username atau password salah.');
+    
+    btn.textContent = 'Berhasil masuk...';
+    btn.style.backgroundColor = '#35594B'; // Berubah warna menjadi hijau (sukses)
+    btn.style.borderColor = '#35594B';
+    setTimeout(() => { window.location.href = '/'; }, 400);
+    
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Masuk ke Sistem';
+  }
+}
+
+document.getElementById('lPassword').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') doLogin();
+});
+
+// Cek tema (dark mode) dari local storage agar langsung sesuai preferensi pengguna
+if(localStorage.getItem('SIPOND_theme') === 'dark') {
+  document.body.classList.add('dark-mode');
+}
+</script>
+</body>
+</html>
