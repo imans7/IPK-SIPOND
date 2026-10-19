@@ -125,6 +125,7 @@ function parseWorkbookToItems(workbook) {
         manualNo: idx.manualNo > -1 ? String(r[idx.manualNo] || '').trim() : '',
         customer: idx.customer > -1 ? String(r[idx.customer] || '').trim() : '',
         note: '',
+        imageUrl: '',
         stock: 1,
         available: 1,
         status: 'tersedia',
@@ -190,6 +191,7 @@ function requireAuth(req, res, next) {
 }
 app.use('/api', requireAuth);
 
+/* --- TAMBAH PISAU (SUDAH DIPERBAIKI: imageUrl) --- */
 app.post('/api/items', (req, res) => {
   const b = req.body || {};
   const name = (b.name || '').trim();
@@ -209,6 +211,7 @@ app.post('/api/items', (req, res) => {
     manualNo: (b.manualNo || '').toString().trim(),
     customer: resolveCustomerCasing(b.customer),
     note: (b.note || '').toString().trim(),
+    imageUrl: (b.imageUrl || '').toString().trim(), // <-- TAMBAHAN DUKUNGAN FOTO
     stock: 1,
     available: 1,
     status: 'tersedia',
@@ -273,6 +276,7 @@ app.post('/api/items/:id/reactivate', (req, res) => {
   res.json(item);
 });
 
+/* --- EDIT PISAU (SUDAH DIPERBAIKI: imageUrl) --- */
 app.patch('/api/items/:id', (req, res) => {
   const item = items.find(i => i.id === req.params.id);
   if (!item) return res.status(404).json({ error: 'Pisau tidak ditemukan.' });
@@ -289,6 +293,7 @@ app.patch('/api/items/:id', (req, res) => {
   if (b.manualNo !== undefined) item.manualNo = String(b.manualNo).trim();
   if (b.customer !== undefined) item.customer = resolveCustomerCasing(b.customer);
   if (b.note !== undefined) item.note = String(b.note).trim();
+  if (b.imageUrl !== undefined) item.imageUrl = String(b.imageUrl).trim(); // <-- TAMBAHAN DUKUNGAN FOTO
   
   if (!item.name || !item.rak) {
     return res.status(400).json({ error: 'Nama dan Rak wajib diisi.' });
@@ -348,7 +353,6 @@ app.post('/api/loans', (req, res) => {
   const product = (b.product || '').trim();
   const date = (b.date || '').trim();
   const itemId = b.itemId;
-  // --- PERBAIKAN: Ambil note dari req.body ---
   const note = (b.note || '').trim(); 
 
   if (!operator) return res.status(400).json({ error: 'Nama operator wajib diisi.' });
@@ -381,7 +385,7 @@ app.post('/api/loans', (req, res) => {
     status: 'dipinjam',
     returnDate: null,
     returnTime: null,
-    note // --- PERBAIKAN: Simpan note ke dalam transaksi ---
+    note
   };
   transactions.unshift(tx);
   item.available -= 1;
@@ -451,7 +455,6 @@ app.delete('/api/loans/:code', (req, res) => {
   res.json({ ok: true });
 });
 
-// Export seluruh data master pisau ke file Excel untuk laporan atasan.
 app.get('/api/export-items', (req, res) => {
   const header = [
     'ID Data', 'Nama Pisau', 'Tempat', 'Rak', 'Mata', 'Papan', 'Lokasi',
@@ -498,7 +501,6 @@ app.post('/api/export', (req, res) => {
   const rows = Array.isArray(req.body.rows) ? req.body.rows : [];
   if (rows.length === 0) return res.status(400).json({ error: 'Tidak ada data untuk diekspor.' });
 
-  // --- PERBAIKAN: Menambahkan 'Catatan' ke dalam header Excel ---
   const header = [
     'Kode Peminjaman', 'Operator', 'Customer', 'No. SPK', 'Nama Produk',
     'Detail Pisau', 'No Urut', 'Catatan', 'Tanggal Pinjam', 'Waktu Pinjam', 'Tanggal Kembali', 'Waktu Kembali', 'Status'
@@ -512,7 +514,7 @@ app.post('/api/export', (req, res) => {
     r.product || '',
     r.itemDetail || '',
     r.manualNo || '-',
-    r.note || '-', // --- PERBAIKAN: Memasukkan data catatan ke baris Excel ---
+    r.note || '-',
     fmtDateID(r.date),
     r.time || '',
     r.returnDate ? fmtDateID(r.returnDate) : '-',

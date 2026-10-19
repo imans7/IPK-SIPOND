@@ -4,8 +4,8 @@
 // Dashboard Cloudinary. Gunakan preset dengan mode Unsigned.
 // Jangan pernah memasukkan API Secret ke file frontend ini.
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'ISI_CLOUD_NAME_ANDA';
-const CLOUDINARY_UPLOAD_PRESET = 'ISI_UNSIGNED_UPLOAD_PRESET_ANDA';
+const CLOUDINARY_CLOUD_NAME = '';
+const CLOUDINARY_UPLOAD_PRESET = '';
 
 // SIPOND - client-side. Semua data diambil/disimpan lewat API server
 
@@ -75,7 +75,6 @@ function toggleTheme(){
   if(btn) btn.innerHTML = isDark ? '☀️ Siang' : '🌙 Malam';
 }
 
-// Format menu header diperbarui agar rapi sejajar
 function renderSessionBar(username){
   const el = document.getElementById('sessionBar');
   if(!el) return;
@@ -89,7 +88,7 @@ function renderSessionBar(username){
 }
 
 async function doLogout(){
-  try{ await fetch('/api/logout', { method:'POST' }); }catch(e){ /* tetap redirect walau gagal */ }
+  try{ await fetch('/api/logout', { method:'POST' }); }catch(e){ }
   redirectToLogin();
 }
 
@@ -159,33 +158,40 @@ async function exportKnifeInventory(){
 }
 
 /* ---------- Import Excel ---------- */
-document.getElementById('importFile').addEventListener('change', async function(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const statusEl = document.getElementById('importStatus');
-  statusEl.className = 'import-status';
-  statusEl.textContent = 'Mengunggah & membaca file...';
-  try{
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch(API.import, { method:'POST', body: fd });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error || 'Gagal mengimpor file.');
-    statusEl.className = 'import-status ok';
-    statusEl.textContent = data.added+' pisau ditambahkan dari '+data.sheets+' sheet (data yang sudah ada, termasuk yang mirip, tidak ditimpa).';
-    await loadAll();
-  }catch(err){
-    statusEl.className = 'import-status err';
-    statusEl.textContent = err.message;
-  }
-  e.target.value = '';
-});
+const importEl = document.getElementById('importFile');
+if(importEl) {
+  importEl.addEventListener('change', async function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const statusEl = document.getElementById('importStatus');
+    statusEl.className = 'import-status';
+    statusEl.textContent = 'Mengunggah & membaca file...';
+    try{
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(API.import, { method:'POST', body: fd });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Gagal mengimpor file.');
+      statusEl.className = 'import-status ok';
+      statusEl.textContent = data.added+' pisau ditambahkan dari '+data.sheets+' sheet (data yang sudah ada, termasuk yang mirip, tidak ditimpa).';
+      await loadAll();
+    }catch(err){
+      statusEl.className = 'import-status err';
+      statusEl.textContent = err.message;
+    }
+    e.target.value = '';
+  });
+}
 
 /* ---------- Rendering ---------- */
 function getFilteredItems(){
-  const q = (document.getElementById('searchInput').value || '').toLowerCase();
-  const loc = document.getElementById('locationFilter').value;
-  const cust = document.getElementById('customerFilter').value;
+  const searchInput = document.getElementById('searchInput');
+  const locFilter = document.getElementById('locationFilter');
+  const custFilter = document.getElementById('customerFilter');
+
+  const q = (searchInput ? searchInput.value : '').toLowerCase();
+  const loc = locFilter ? locFilter.value : '';
+  const cust = custFilter ? custFilter.value : '';
   
   let filtered = state.items.filter(i=>{
     const matchQ = !q
@@ -215,9 +221,9 @@ function renderStats(){
   const dipinjamHariIni = state.transactions.filter(t=>t.date===todayStr() && t.status==='dipinjam' && filteredIds.has(t.itemId)).length;
   
   const statsContainer = document.getElementById('statsRow');
+  if(!statsContainer) return;
   let numbersBox = document.getElementById('statsNumbers');
   
-  // Jika ini adalah render pertama kali, buat struktur terpisah untuk catatan agar tidak tertimpa
   if(!numbersBox) {
     statsContainer.innerHTML = '<div id="statsNumbers" style="display:contents;"></div>'
       + '<div class="stat" style="flex:1; min-width:200px; display:flex; flex-direction:column; background:var(--accent-soft); border-color:var(--accent);">'
@@ -226,10 +232,10 @@ function renderStats(){
       + '</div>';
     
     numbersBox = document.getElementById('statsNumbers');
-    document.getElementById('globalNoteInput').value = localStorage.getItem('SIPOND_global_note') || '';
+    const noteInput = document.getElementById('globalNoteInput');
+    if(noteInput) noteInput.value = localStorage.getItem('SIPOND_global_note') || '';
   }
 
-  // Auto-refresh HANYA akan menimpa angka statistik (kotak catatan tetap aman)
   numbersBox.innerHTML = [
     ['Jenis pisau', filtered.length],
     ['Stok tersedia', tersedia+' / '+total],
@@ -239,6 +245,7 @@ function renderStats(){
 
 function renderLocationFilter(){
   const sel = document.getElementById('locationFilter');
+  if(!sel) return;
   const locs = ['Semua lokasi', ...new Set(state.items.map(i=>i.location))].sort();
   const current = sel.value || 'Semua lokasi';
   sel.innerHTML = locs.map(r=>'<option value="'+r+'">'+r+'</option>').join('');
@@ -247,6 +254,7 @@ function renderLocationFilter(){
 
 function renderCustomerFilter(){
   const sel = document.getElementById('customerFilter');
+  if(!sel) return;
   const custs = ['Semua customer', ...new Set(state.items.map(i=>i.customer).filter(c=>c))].sort();
   const current = sel.value || 'Semua customer';
   sel.innerHTML = custs.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
@@ -255,6 +263,7 @@ function renderCustomerFilter(){
 
 function renderCatalog(){
   const list = document.getElementById('catalogList');
+  if(!list) return;
   const filtered = getFilteredItems();
   if(filtered.length===0){
     list.innerHTML = '<div class="empty-state">Pisau tidak ditemukan. Coba ubah kata kunci/filter, atau tambah pisau baru.</div>';
@@ -281,7 +290,6 @@ function renderCatalog(){
                  + '<button class="btn secondary small" style="color:var(--warn); border-color:var(--warn);" onclick="event.stopPropagation(); promptManageItem(\''+i.id+'\')">Hapus / Discon</button>';
     }
 
-    // Klik kartu pisau akan menampilkan panel foto; peminjaman dimulai dari tombol Pinjam di panel kanan.
     const clickAttr = ' onclick="previewItemForLoan(\''+i.id+'\')" style="cursor:pointer;"';
     const checked = state.selectedIds.has(i.id) ? ' checked' : '';
     
@@ -299,8 +307,6 @@ function renderCatalog(){
   }).join('');
   updateBulkBar();
 }
-
-// Menampilkan foto produk dari URL Cloudinary yang tersimpan pada data pisau.
 
 /* ---------- Upload foto pisau ke Cloudinary ---------- */
 function chooseKnifePhoto(prefix){
@@ -391,44 +397,6 @@ function previewKnifePhoto(prefix){
   }
 }
 
-function viewItemPhoto(id){
-  const item = state.items.find(i => i.id === id);
-  if(!item || !item.imageUrl) return;
-  let url;
-  try {
-    url = new URL(item.imageUrl);
-    if(url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('URL tidak valid');
-  } catch(e) {
-    alert('Alamat foto tidak valid. Gunakan URL foto Cloudinary yang lengkap.');
-    return;
-  }
-  let modal = document.getElementById('itemPhotoModal');
-  if(!modal){
-    modal = document.createElement('div');
-    modal.id = 'itemPhotoModal';
-    modal.className = 'photo-modal';
-    modal.innerHTML = '<div class="photo-modal-card" role="dialog" aria-modal="true" aria-label="Foto produk">'
-      + '<button class="photo-modal-close" type="button" onclick="closeItemPhoto()" aria-label="Tutup">×</button>'
-      + '<h3 id="itemPhotoTitle"></h3><img id="itemPhotoImage" alt="Foto produk"><p id="itemPhotoError" class="photo-error" style="display:none;">Foto tidak dapat dimuat. Periksa URL atau pengaturan akses Cloudinary.</p>'
-      + '</div>';
-    modal.addEventListener('click', e => { if(e.target === modal) closeItemPhoto(); });
-    document.body.appendChild(modal);
-  }
-  document.getElementById('itemPhotoTitle').textContent = item.name;
-  const img = document.getElementById('itemPhotoImage');
-  const err = document.getElementById('itemPhotoError');
-  err.style.display = 'none';
-  img.style.display = 'block';
-  img.onerror = () => { img.style.display = 'none'; err.style.display = 'block'; };
-  img.src = url.href;
-  modal.style.display = 'flex';
-}
-function closeItemPhoto(){
-  const modal = document.getElementById('itemPhotoModal');
-  if(modal) modal.style.display = 'none';
-}
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeItemPhoto(); });
-
 function toggleItemCheckbox(id, checked){
   if(checked) state.selectedIds.add(id); else state.selectedIds.delete(id);
   updateBulkBar();
@@ -474,7 +442,6 @@ function previewItemForLoan(id){
   render();
 }
 
-// Tombol Pinjam pada panel foto membuka formulir peminjaman yang sudah ada.
 function continueToLoanForm(){
   const item = state.items.find(i => i.id === state.selectedItemId);
   if(!item || item.available <= 0 || item.status === 'discontinued') return;
@@ -483,7 +450,6 @@ function continueToLoanForm(){
 }
 
 function selectItem(id){
-  // Pemilihan pisau dari katalog selalu menampilkan foto terlebih dahulu.
   previewItemForLoan(id);
 }
 
@@ -502,8 +468,7 @@ function cancelSelection(){
 function cancelPhotoPreview(){
   state.selectedItemId = null;
   state.view = 'idle';
-  // Memuat ulang halaman agar pilihan pisau benar-benar dibatalkan.
-  window.location.reload();
+  render();
 }
 
 function openAddItemForm(){
@@ -622,6 +587,7 @@ async function submitEditItem(){
 
 function renderOperatorPanel(){
   const body = document.getElementById('operatorBody');
+  if(!body) return;
 
   if(state.view === 'photo-preview'){
     const item = state.items.find(i => i.id === state.selectedItemId);
@@ -859,12 +825,8 @@ function renderOperatorPanel(){
   }
 }
 
-// ---------------- FORMAT LAYOUT CETAK BARU (GRID 3 KOLOM x 4 BARIS) ----------------
-// Lebar diperkecil, tinggi diperbesar, dan FONT DIUKURAN KEMBALI agar muat dan terbaca
 function renderVoucherHtml(tx, forPrint, copyLabel){
   const brandClass = tx.status === 'dipinjam' ? 'SIPOND-brand-out' : 'SIPOND-brand-returned';
-  
-  // Padding & font-size diperkecil sedikit agar teks yang panjang tidak mendorong kode ke luar kotak
   const printStyle = forPrint ? 'padding:2.5mm 3.5mm; border:1.5px solid #000; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; page-break-inside:avoid; color:#000; overflow:hidden;' : '';
   const rowStyle   = forPrint ? 'display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dotted #000; padding-bottom:1.5px; margin-bottom:1.5px;' : '';
   const labelStyle = forPrint ? 'font-size:8px; font-weight:700; color:#000; display:inline-block; width:55px; flex-shrink:0; line-height:1.1;' : '';
@@ -887,6 +849,7 @@ function renderVoucherHtml(tx, forPrint, copyLabel){
     +'<div class="code" style="'+(forPrint?'font-size:10px; margin-top:2px; color:#000; text-align:center; font-family:monospace; font-weight:900; flex-shrink:0; padding-top:2.5px; border-top:1.5px dashed #000;':'')+'">'+tx.code+'</div>'
     +'</div>';
 }
+
 function defaultVoucherCount(item){
   const n = parseInt(item && item.papan, 10);
   return (n && n>0) ? n : 1;
@@ -895,7 +858,6 @@ function defaultVoucherCount(item){
 function getVoucherPages(tx, overrideCount){
   const n = overrideCount !== undefined ? overrideCount : (tx.voucherCount || 1);
   let pages = [];
-  
   for(let i=1;i<=n;i++){
     pages.push(renderVoucherHtml(tx, true, 'Papan '+i+' dari '+n));
   }
@@ -906,7 +868,6 @@ function getVoucherPages(tx, overrideCount){
 }
 
 function chunkAndRenderPrintPages(pagesArray) {
-  // Tetap 12 per halaman, tapi kini membagi 3 kolom x 4 baris
   const chunkSize = 12; 
   let html = '';
   for(let i = 0; i < pagesArray.length; i += chunkSize) {
@@ -915,7 +876,6 @@ function chunkAndRenderPrintPages(pagesArray) {
   }
   return html;
 }
-// --------------------------------------------------------------------
 
 async function submitLoan(){
   const item = state.items.find(i=>i.id===state.selectedItemId);
@@ -939,22 +899,16 @@ async function submitLoan(){
 
   try{
     const tx = await apiSend(API.loans, 'POST', { operator, customer, spk, product, note: loanNote, itemId:item.id, date, voucherCount });
-    
     state.lastOperator = operator;
     localStorage.setItem('SIPOND_lastOperator', operator);
     state.lastCode = tx.code;
     state.view = 'voucher';
-    
     await loadAll();
     
-    // --- PERBAIKAN CATATAN ---
-    // Memaksa memasukkan nilai catatan dari form ke data transaksi agar dicetak,
-    // seandainya database server belum mengatur penyimpanan kolom "note".
     const refreshedTx = state.transactions.find(t => t.code === tx.code);
     if(refreshedTx && loanNote) {
-        refreshedTx.note = loanNote;
+      refreshedTx.note = loanNote;
     }
-
     setTimeout(()=>printVoucher(tx.code), 200);
   }catch(e){
     errEl.textContent = e.message;
@@ -963,16 +917,16 @@ async function submitLoan(){
 }
 
 async function markAdminCopyPrinted(code){
-  try{ await apiSend('/api/loans/'+encodeURIComponent(code)+'/mark-admin-printed', 'POST'); }catch(e){ /* diamkan */ }
+  try{ await apiSend('/api/loans/'+encodeURIComponent(code)+'/mark-admin-printed', 'POST'); }catch(e){ }
 }
 
 async function printVoucher(code, overrideCount){
   const tx = state.transactions.find(t=>t.code===code);
   if(!tx) return;
   const includesAdminCopy = !tx.adminCopyPrinted;
-  
   const pages = getVoucherPages(tx, overrideCount);
-  document.getElementById('printArea').innerHTML = chunkAndRenderPrintPages(pages);
+  const printArea = document.getElementById('printArea');
+  if(printArea) printArea.innerHTML = chunkAndRenderPrintPages(pages);
   
   window.print();
   if(includesAdminCopy){
@@ -984,25 +938,20 @@ async function printVoucher(code, overrideCount){
 function customReprint(code) {
   const tx = state.transactions.find(t=>t.code===code);
   if(!tx) return;
-  
   const currentCount = tx.voucherCount || 1;
   const input = prompt('Berapa jumlah voucher (papan) yang ingin dicetak ulang untuk produk "' + tx.product + '"?', currentCount);
   if(input === null) return;
-  
   const num = parseInt(input, 10);
   if(isNaN(num) || num < 1) {
     alert('Jumlah voucher tidak valid.');
     return;
   }
-
-  // --- PERBAIKAN: Jika catatan kosong dari server, minta operator mengisinya lagi khusus untuk cetak ulang ---
   if (!tx.note || tx.note.trim() === '') {
     const noteInput = prompt('Catatan tidak ditemukan (tidak tersimpan di server). Masukkan catatan untuk dicetak ulang (kosongkan jika tidak ada):', '');
     if (noteInput !== null) {
       tx.note = noteInput.trim();
     }
   }
-
   printVoucher(code, num);
 }
 
@@ -1012,13 +961,11 @@ async function bulkPrintHistory(){
   const txs = codes.map(c => state.transactions.find(t=>t.code===c)).filter(Boolean);
   if(txs.length===0) return;
   const codesNeedingAdminCopy = txs.filter(t => !t.adminCopyPrinted).map(t=>t.code);
-  
   let allPages = [];
   txs.forEach(t => { allPages = allPages.concat(getVoucherPages(t)); });
-  
-  document.getElementById('printArea').innerHTML = chunkAndRenderPrintPages(allPages);
+  const printArea = document.getElementById('printArea');
+  if(printArea) printArea.innerHTML = chunkAndRenderPrintPages(allPages);
   window.print();
-  
   if(codesNeedingAdminCopy.length>0){
     txs.forEach(t => { if(codesNeedingAdminCopy.includes(t.code)) t.adminCopyPrinted = true; });
     await Promise.all(codesNeedingAdminCopy.map(markAdminCopyPrinted));
@@ -1093,22 +1040,30 @@ async function deleteTransaction(code){
 function initHistoryDateDefaults(){
   const fromEl = document.getElementById('historyDateFrom');
   const toEl = document.getElementById('historyDateTo');
-  if(!fromEl.value) fromEl.value = monthsAgoStr(6);
-  if(!toEl.value) toEl.value = todayStr();
+  if(fromEl && !fromEl.value) fromEl.value = monthsAgoStr(6);
+  if(toEl && !toEl.value) toEl.value = todayStr();
 }
 
 function resetHistoryFilters(){
-  document.getElementById('historySearch').value = '';
-  document.getElementById('historyFilter').value = 'all';
-  document.getElementById('historyCustomerFilter').value = 'Semua customer';
-  document.getElementById('historyLocationFilter').value = 'Semua lokasi';
-  document.getElementById('historyDateFrom').value = monthsAgoStr(6);
-  document.getElementById('historyDateTo').value = todayStr();
+  const searchEl = document.getElementById('historySearch');
+  const filterEl = document.getElementById('historyFilter');
+  const custEl = document.getElementById('historyCustomerFilter');
+  const locEl = document.getElementById('historyLocationFilter');
+  const fromEl = document.getElementById('historyDateFrom');
+  const toEl = document.getElementById('historyDateTo');
+
+  if(searchEl) searchEl.value = '';
+  if(filterEl) filterEl.value = 'all';
+  if(custEl) custEl.value = 'Semua customer';
+  if(locEl) locEl.value = 'Semua lokasi';
+  if(fromEl) fromEl.value = monthsAgoStr(6);
+  if(toEl) toEl.value = todayStr();
   renderHistory();
 }
 
 function renderHistoryCustomerFilter(){
   const sel = document.getElementById('historyCustomerFilter');
+  if(!sel) return;
   const custs = ['Semua customer', ...new Set(state.transactions.map(t=>t.customer).filter(c=>c))].sort();
   const current = sel.value || 'Semua customer';
   sel.innerHTML = custs.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
@@ -1117,6 +1072,7 @@ function renderHistoryCustomerFilter(){
 
 function renderHistoryLocationFilter(){
   const sel = document.getElementById('historyLocationFilter');
+  if(!sel) return;
   const locs = ['Semua lokasi', ...new Set(state.transactions.map(t=>t.location).filter(l=>l))].sort();
   const current = sel.value || 'Semua lokasi';
   sel.innerHTML = locs.map(l=>'<option value="'+l+'">'+l+'</option>').join('');
@@ -1125,12 +1081,19 @@ function renderHistoryLocationFilter(){
 
 function renderHistory(){
   initHistoryDateDefaults();
-  const q = (document.getElementById('historySearch').value || '').toLowerCase();
-  const statusFilter = document.getElementById('historyFilter').value;
-  const custFilter = document.getElementById('historyCustomerFilter').value;
-  const locFilter = document.getElementById('historyLocationFilter').value;
-  const dateFrom = document.getElementById('historyDateFrom').value;
-  const dateTo = document.getElementById('historyDateTo').value;
+  const searchEl = document.getElementById('historySearch');
+  const filterEl = document.getElementById('historyFilter');
+  const custEl = document.getElementById('historyCustomerFilter');
+  const locEl = document.getElementById('historyLocationFilter');
+  const fromEl = document.getElementById('historyDateFrom');
+  const toEl = document.getElementById('historyDateTo');
+
+  const q = (searchEl ? searchEl.value : '').toLowerCase();
+  const statusFilter = filterEl ? filterEl.value : 'all';
+  const custFilter = custEl ? custEl.value : 'Semua customer';
+  const locFilter = locEl ? locEl.value : 'Semua lokasi';
+  const dateFrom = fromEl ? fromEl.value : '';
+  const dateTo = toEl ? toEl.value : '';
 
   const rows = state.transactions.filter(t=>{
     const matchQ = !q
@@ -1139,7 +1102,7 @@ function renderHistory(){
       || (t.customer||'').toLowerCase().includes(q)
       || (t.spk||'').toLowerCase().includes(q)
       || (t.product||'').toLowerCase().includes(q)
-      || (t.note||'').toLowerCase().includes(q); // Catatan sekarang bisa dicari via search bar
+      || (t.note||'').toLowerCase().includes(q);
     const matchStatus = statusFilter==='all' || t.status===statusFilter;
     const matchCust = custFilter==='Semua customer' || t.customer===custFilter;
     const matchLoc = locFilter==='Semua lokasi' || t.location===locFilter;
@@ -1149,6 +1112,7 @@ function renderHistory(){
   });
 
   const body = document.getElementById('historyBody');
+  if(!body) return;
   state.lastHistoryRows = rows;
   if(rows.length===0){
     body.innerHTML = '<tr><td colspan="13" style="color:var(--ink-soft);text-align:center;padding:22px;">Tidak ada transaksi yang cocok dengan filter.</td></tr>';
@@ -1206,6 +1170,7 @@ function renderHistory(){
   }).join('');
   updateHistoryBulkBar();
 }
+
 function toggleHistoryCheckbox(code, checked){
   if(checked) state.selectedHistoryCodes.add(code); else state.selectedHistoryCodes.delete(code);
   updateHistoryBulkBar();
@@ -1321,15 +1286,26 @@ function render(){
 }
 
 function updateCatalogAndStats(){ renderStats(); renderCatalog(); }
-document.getElementById('searchInput').addEventListener('input', updateCatalogAndStats);
-document.getElementById('locationFilter').addEventListener('change', updateCatalogAndStats);
-document.getElementById('customerFilter').addEventListener('change', updateCatalogAndStats);
-document.getElementById('historyFilter').addEventListener('change', renderHistory);
-document.getElementById('historySearch').addEventListener('input', renderHistory);
-document.getElementById('historyCustomerFilter').addEventListener('change', renderHistory);
-document.getElementById('historyLocationFilter').addEventListener('change', renderHistory);
-document.getElementById('historyDateFrom').addEventListener('change', renderHistory);
-document.getElementById('historyDateTo').addEventListener('change', renderHistory);
+
+const searchInp = document.getElementById('searchInput');
+if(searchInp) searchInp.addEventListener('input', updateCatalogAndStats);
+const locFilt = document.getElementById('locationFilter');
+if(locFilt) locFilt.addEventListener('change', updateCatalogAndStats);
+const custFilt = document.getElementById('customerFilter');
+if(custFilt) custFilt.addEventListener('change', updateCatalogAndStats);
+
+const histFilt = document.getElementById('historyFilter');
+if(histFilt) histFilt.addEventListener('change', renderHistory);
+const histSearch = document.getElementById('historySearch');
+if(histSearch) histSearch.addEventListener('input', renderHistory);
+const histCustFilt = document.getElementById('historyCustomerFilter');
+if(histCustFilt) histCustFilt.addEventListener('change', renderHistory);
+const histLocFilt = document.getElementById('historyLocationFilter');
+if(histLocFilt) histLocFilt.addEventListener('change', renderHistory);
+const histDateFrom = document.getElementById('historyDateFrom');
+if(histDateFrom) histDateFrom.addEventListener('change', renderHistory);
+const histDateTo = document.getElementById('historyDateTo');
+if(histDateTo) histDateTo.addEventListener('change', renderHistory);
 
 checkAuthAndInit();
 
