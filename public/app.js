@@ -286,10 +286,13 @@ function renderCatalog(){
     const checked = state.selectedIds.has(i.id) ? ' checked' : '';
     
     const noteHtml = i.note ? '<div style="font-size:11px; color:var(--ink-soft); margin-top:5px; font-style:italic;">Catatan: '+i.note+'</div>' : '';
+    const photoBadge = i.imageUrl
+      ? '<span class="photo-status-badge has-photo" title="Foto pisau sudah tersedia">📷 Ada foto</span>'
+      : '<span class="photo-status-badge no-photo" title="Foto pisau belum ditambahkan">📷 Belum ada foto</span>';
     return '<div class="item-tag'+cls+'"'+clickAttr+'>'
       +'<input type="checkbox" class="item-checkbox"'+checked+' onclick="event.stopPropagation()" onchange="toggleItemCheckbox(\''+i.id+'\', this.checked)">'
       +'<div class="hole"></div>'
-      +'<div class="info"><b>'+i.name+'</b><span>'+itemDetailLine(i)+(i.customer?' · Customer '+i.customer:'')+'</span>'+noteHtml+'</div>'
+      +'<div class="info"><div class="item-name-row"><b>'+i.name+'</b>'+photoBadge+'</div><span>'+itemDetailLine(i)+(i.customer?' · Customer '+i.customer:'')+'</span>'+noteHtml+'</div>'
       +'<div class="nourut-box"><label>No Urut</label><div class="nourut-value">'+(i.manualNo||'-')+'</div></div>'
       +'<div class="side" style="align-items:flex-end;">'+badge+'<div style="display:flex; gap:6px; margin-top:8px;">'+actionBtns+'</div></div>'
       +'</div>';

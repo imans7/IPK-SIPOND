@@ -98,6 +98,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 #bulkDeleteBtn:hover { opacity: .85; }
 .item-tag .info { flex: 1; min-width: 0; }
 .item-tag .info b { font-size: 14px; display: block; }
+ .item-tag .item-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 3px; }
+.item-tag .item-name-row b { font-size: 14px; display: block; }
+.photo-status-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border: 1px solid var(--line); border-radius: 10px; font-size: 10px; line-height: 1.4; white-space: nowrap; font-weight: 600; }
+.photo-status-badge.has-photo { color: var(--ok); background: var(--ok-soft); border-color: var(--ok); }
+.photo-status-badge.no-photo { color: var(--ink-soft); background: transparent; }
 .item-tag .info span { font-size: 11.5px; color: var(--ink-soft); }
 .item-tag .side { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .nourut-box { display: flex; flex-direction: column; gap: 2px; flex: none; width: 84px; }
