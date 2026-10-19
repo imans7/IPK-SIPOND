@@ -28,8 +28,12 @@
     <section class="panel">
       <div class="panel-head">
         <h2>Katalog pisau</h2>
-        <button class="btn accent mini" onclick="openAddItemForm()">+ Tambah pisau</button>
-        <button class="btn secondary small" onclick="document.getElementById('importFile').click()">Import dari Excel</button>
+        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+          <button class="btn accent mini" onclick="openAddItemForm()">+ Tambah pisau</button>
+          <button class="btn secondary small" onclick="document.getElementById('importFile').click()">Import dari Excel</button>
+          <!-- Tombol Export ke Excel Katalog Pisau -->
+          <button class="btn secondary small" onclick="exportKnifeInventory()">Export ke Excel</button>
+        </div>
         <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none;">
       </div>
       <div class="panel-body">
@@ -95,7 +99,7 @@
     <div class="panel-body" style="overflow-x:auto; overflow-y:auto; max-height:450px; padding-top:0;">
       <table>
         <thead><tr>
-          <th></th><th>Kode</th><th>Operator</th><th>Customer</th><th>No. SPK</th><th>Nama Produk</th><th>Detail Pisau</th><th>No Urut</th><th>Catatan</th><th></th>Pinjam</th><th>Kembali</th><th>Status</th><th></th>
+          <th></th><th>Kode</th><th>Operator</th><th>Customer</th><th>No. SPK</th><th>Nama Produk</th><th>Detail Pisau</th><th>No Urut</th><th>Catatan</th><th>Pinjam</th><th>Kembali</th><th>Status</th><th>Aksi</th>
         </tr></thead>
         <tbody id="historyBody"></tbody>
       </table>
