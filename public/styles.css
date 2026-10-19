@@ -42,6 +42,15 @@ h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; margin:
 header.top { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 18px; margin-bottom: 22px; }
 header.top .brand h1 { font-size: 26px; letter-spacing: -0.01em; }
 header.top .brand p { margin: 4px 0 0; color: var(--ink-soft); font-size: 14px; }
+/* Logo program di sebelah kiri nama SIPOND */
+header.top .brand-with-logo { display: flex; align-items: center; gap: 14px; min-width: 0; }
+header.top .brand-logo { display: block; width: 78px; height: 78px; object-fit: contain; flex: 0 0 78px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+header.top .brand-copy { min-width: 0; }
+@media (max-width: 600px) {
+  header.top .brand-with-logo { gap: 10px; }
+  header.top .brand-logo { width: 60px; height: 60px; flex-basis: 60px; }
+  header.top .brand p { font-size: 12px; }
+}
 .stats { display: flex; gap: 10px; flex-wrap: wrap; }
 .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 10px 16px; min-width: 104px; }
 .stat b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 20px; line-height: 1.1; }
@@ -70,13 +79,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .import-status.ok { color: var(--ok); }
 .import-status.err { color: var(--warn); }
 
-.catalog-list { display: flex; flex-direction: column; gap:8px; margin-top: 14px; max-height: 500px; overflow-y: auto; padding-right: 2px; }
+.catalog-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; max-height: 500px; overflow-y: auto; padding-right: 2px; }
 .item-tag {
   display: flex; align-items: center; gap: 12px;
   border: 1px solid var(--line); background: var(--bg);
-  padding: 30px 16px 16px 14px; min-height: 88px; border-radius: 2px; cursor: pointer;
+  padding: 11px 14px 11px 10px; border-radius: 2px; cursor: pointer;
   transition: border-color .12s;
-  flex-shrink: 0;
 }
 .item-tag:hover { border-color: var(--accent); }
 .item-tag.selected { border-color: var(--accent); background: var(--accent-soft); }
@@ -89,10 +97,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 #bulkDeleteBtn { background: var(--warn); border-color: var(--warn); color: #fff; }
 #bulkDeleteBtn:hover { opacity: .85; }
 .item-tag .info { flex: 1; min-width: 0; }
-.item-tag .info b { font-size: 15px; display: block; margin-bottom: 4px; line-height: 1.35; }
-.item-tag .info span { font-size: 12px; color: var(--ink-soft); line-height: 1.55; display: inline-block; }
+.item-tag .info b { font-size: 14px; display: block; }
+.item-tag .info span { font-size: 11.5px; color: var(--ink-soft); }
 .item-tag .side { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.nourut-box { display: flex; flex-direction: column; gap: 4px; flex: none; width: 100px; }
+.nourut-box { display: flex; flex-direction: column; gap: 2px; flex: none; width: 84px; }
 .nourut-box label { font-size: 10px; color: var(--ink-soft); }
 .nourut-box .nourut-value { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; padding: 5px 7px; background: var(--panel); border: 1px solid var(--line); border-radius: 2px; color: var(--ink-soft); }
 .badge { font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
@@ -260,49 +268,3 @@ td.mono, .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
 
 .history-checkbox { cursor: pointer; accent-color: var(--accent); }
 .history-bulk-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 2px; }
-
-/* Tombol dan modal foto produk Cloudinary */
-.photo-view-btn { margin-top: 6px; white-space: nowrap; background: var(--panel); color: var(--accent-ink); border-color: var(--accent); }
-.photo-missing { display: block; max-width: 100px; margin-top: 6px; color: var(--ink-soft); font-size: 10px; line-height: 1.3; }
-.field-help { display: block; margin-top: 5px; color: var(--ink-soft); font-size: 11px; line-height: 1.4; }
-.photo-modal { display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.78); }
-.photo-modal-card { position: relative; width: min(760px, 100%); max-height: 90vh; overflow: auto; padding: 22px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-.photo-modal-card h3 { padding-right: 36px; margin: 0 0 14px; font-size: 17px; overflow-wrap: anywhere; }
-.photo-modal-card img { display: block; max-width: 100%; max-height: 68vh; margin: 0 auto; object-fit: contain; border-radius: 4px; }
-.photo-modal-close { position: absolute; top: 10px; right: 12px; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; background: var(--bg); color: var(--ink); font-size: 25px; line-height: 1; cursor: pointer; }
-.photo-error { padding: 20px 0; color: var(--warn); text-align: center; font-size: 13px; }
-@media (max-width: 620px) {
-  .item-tag { flex-wrap: wrap; }
-  .item-tag .nourut-box { width: 84px; }
-  .item-tag .side { margin-left: auto; }
-  .photo-modal { padding: 10px; }
-  .photo-modal-card { padding: 18px 12px; }
-}
-
-
-/* Kontrol upload foto pisau */
-.photo-upload-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:8px; }
-.photo-upload-status { margin-top:7px; font-size:12px; color:var(--ink-soft); line-height:1.45; overflow-wrap:anywhere; }
-.photo-upload-preview { display:block; max-width:100%; max-height:190px; margin-top:10px; object-fit:contain; border:1px solid var(--line); border-radius:4px; background:#fff; padding:4px; }
-.photo-url-details { margin-top:10px; font-size:12px; color:var(--ink-soft); }
-.photo-url-details summary { cursor:pointer; margin-bottom:8px; }
-.photo-url-details input { width:100%; }
-.photo-upload-row button:disabled { opacity:.65; cursor:wait; }
-
-
-/* Panel pratinjau foto sebelum formulir peminjaman */
-.loan-photo-panel { display:flex; flex-direction:column; gap:10px; min-height:300px; }
-.loan-photo-name { font-size:18px; font-weight:700; }
-.loan-photo-detail { color:var(--ink-soft); font-size:12px; line-height:1.5; }
-.loan-photo-stage { min-height:300px; max-height:52vh; display:flex; align-items:center; justify-content:center; overflow:auto; padding:12px; border:1px solid var(--line); border-radius:4px; background:var(--bg); }
-.loan-photo-preview { display:block; max-width:100%; max-height:50vh; width:auto; height:auto; object-fit:contain; border-radius:3px; }
-.loan-photo-empty { text-align:center; color:var(--ink-soft); padding:40px 12px; }
-.loan-photo-empty p { font-size:12px; margin:8px 0 0; }
-.loan-photo-actions { display:flex; gap:10px; justify-content:center; }
-.loan-photo-actions .btn { flex:1; }
-
-/* Mencegah URL foto panjang meluber ke area kartu katalog. URL foto hanya dipakai sebagai src gambar. */
-.item-tag { overflow: hidden; }
-.item-tag .info, .item-tag .nourut-box, .item-tag .side { min-width: 0; }
-.item-tag .nourut-box { overflow: hidden; }
-

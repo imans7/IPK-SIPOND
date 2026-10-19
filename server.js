@@ -209,7 +209,6 @@ app.post('/api/items', (req, res) => {
     manualNo: (b.manualNo || '').toString().trim(),
     customer: resolveCustomerCasing(b.customer),
     note: (b.note || '').toString().trim(),
-    imageUrl: (b.imageUrl || '').toString().trim(),
     stock: 1,
     available: 1,
     status: 'tersedia',
@@ -290,7 +289,6 @@ app.patch('/api/items/:id', (req, res) => {
   if (b.manualNo !== undefined) item.manualNo = String(b.manualNo).trim();
   if (b.customer !== undefined) item.customer = resolveCustomerCasing(b.customer);
   if (b.note !== undefined) item.note = String(b.note).trim();
-  if (b.imageUrl !== undefined) item.imageUrl = String(b.imageUrl).trim();
   
   if (!item.name || !item.rak) {
     return res.status(400).json({ error: 'Nama dan Rak wajib diisi.' });
@@ -451,6 +449,49 @@ app.delete('/api/loans/:code', (req, res) => {
   transactions.splice(idx, 1);
   persistTransactions();
   res.json({ ok: true });
+});
+
+// Export seluruh data master pisau ke file Excel untuk laporan atasan.
+app.get('/api/export-items', (req, res) => {
+  const header = [
+    'ID Data', 'Nama Pisau', 'Tempat', 'Rak', 'Mata', 'Papan', 'Lokasi',
+    'Customer', 'No. Urut', 'Catatan', 'Total Stok', 'Stok Tersedia',
+    'Status', 'Alasan Discontinue', 'URL Foto', 'Jumlah Riwayat Discontinue'
+  ];
+
+  const rows = items.map(item => [
+    item.id || '',
+    item.name || '',
+    item.tempat || '',
+    item.rak || '',
+    item.mata || '',
+    item.papan || '',
+    item.location || '',
+    item.customer || '',
+    item.manualNo || '',
+    item.note || '',
+    Number(item.stock ?? 1),
+    Number(item.available ?? 0),
+    item.status === 'discontinued' ? 'Discontinued' : (item.available > 0 ? 'Tersedia' : 'Dipinjam'),
+    item.discontinueReason || '',
+    item.imageUrl || '',
+    Array.isArray(item.discontinueHistory) ? item.discontinueHistory.length : 0
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  ws['!cols'] = [
+    {wch:28}, {wch:28}, {wch:12}, {wch:12}, {wch:12}, {wch:12},
+    {wch:18}, {wch:24}, {wch:12}, {wch:36}, {wch:12}, {wch:16},
+    {wch:18}, {wch:32}, {wch:48}, {wch:24}
+  ];
+  ws['!autofilter'] = { ref: XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:rows.length,c:header.length-1}}) };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data Pisau');
+  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const filename = 'data-pisau-sipond-' + todayStr() + '.xlsx';
+  res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
 });
 
 app.post('/api/export', (req, res) => {

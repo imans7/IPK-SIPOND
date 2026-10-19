@@ -4,8 +4,8 @@
 // Dashboard Cloudinary. Gunakan preset dengan mode Unsigned.
 // Jangan pernah memasukkan API Secret ke file frontend ini.
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'w9qq2nc2';
-const CLOUDINARY_UPLOAD_PRESET = 'ml_default';
+const CLOUDINARY_CLOUD_NAME = 'ISI_CLOUD_NAME_ANDA';
+const CLOUDINARY_UPLOAD_PRESET = 'ISI_UNSIGNED_UPLOAD_PRESET_ANDA';
 
 // SIPOND - client-side. Semua data diambil/disimpan lewat API server
 
@@ -133,6 +133,29 @@ function monthsAgoStr(n){
 }
 function itemDetailLine(i){
   return 'Tempat '+i.tempat+' · Rak '+i.rak+' · Mata '+i.mata+' · Papan '+i.papan;
+}
+
+/* ---------- Export data master pisau ke Excel ---------- */
+async function exportKnifeInventory(){
+  try{
+    const res = await fetch('/api/export-items');
+    if(res.status === 401){ redirectToLogin(); return; }
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Gagal mengekspor data pisau.');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data-pisau-sipond-' + todayStr() + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }catch(err){
+    alert(err.message || 'Gagal mengekspor data pisau.');
+  }
 }
 
 /* ---------- Import Excel ---------- */
@@ -263,15 +286,11 @@ function renderCatalog(){
     const checked = state.selectedIds.has(i.id) ? ' checked' : '';
     
     const noteHtml = i.note ? '<div style="font-size:11px; color:var(--ink-soft); margin-top:5px; font-style:italic;">Catatan: '+i.note+'</div>' : '';
-    const photoBtn = i.imageUrl
-      ? '<button class="btn photo-view-btn small" onclick="event.stopPropagation(); viewItemPhoto(\''+i.id+'\')">📷 Lihat Foto</button>'
-      : '<button class="btn photo-view-btn small" disabled title="Tambahkan foto melalui Riwayat / Edit">📷 Foto belum tersedia</button>';
-
     return '<div class="item-tag'+cls+'"'+clickAttr+'>'
       +'<input type="checkbox" class="item-checkbox"'+checked+' onclick="event.stopPropagation()" onchange="toggleItemCheckbox(\''+i.id+'\', this.checked)">'
       +'<div class="hole"></div>'
       +'<div class="info"><b>'+i.name+'</b><span>'+itemDetailLine(i)+(i.customer?' · Customer '+i.customer:'')+'</span>'+noteHtml+'</div>'
-      +'<div class="nourut-box"><label>No Urut</label><div class="nourut-value">'+(i.manualNo||'-')+'</div>'+photoBtn+'</div>'
+      +'<div class="nourut-box"><label>No Urut</label><div class="nourut-value">'+(i.manualNo||'-')+'</div></div>'
       +'<div class="side" style="align-items:flex-end;">'+badge+'<div style="display:flex; gap:6px; margin-top:8px;">'+actionBtns+'</div></div>'
       +'</div>';
   }).join('');
